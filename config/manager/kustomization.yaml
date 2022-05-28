@@ -12,5 +12,5 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 images:
 - name: controller
-  newName: paragor.ru/k8s-operators-deployment-operator
+  newName: paragor/k8s-operators-deployment-operator
   newTag: 0.0.1
