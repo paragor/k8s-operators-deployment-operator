@@ -1,0 +1,15 @@
+domain: paragor.ru
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: deployment-operator
+repo: github.com/paragor/k8s-operators-deployment-operator
+resources:
+- controller: true
+  group: apps
+  kind: Deployment
+  path: k8s.io/api/apps/v1
+  version: v1
+version: "3"
