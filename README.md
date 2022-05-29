@@ -61,6 +61,9 @@ make install
 
 ```sh
 make run
+
+#old version cluster
+make RUN_ARGS="-enable-batchv1-cronjob=false -enable-batchv1beta1-cronjob=true" run
 ```
 
 **NOTE:** You can also run this in one step by running: `make install run`
