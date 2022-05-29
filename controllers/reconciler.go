@@ -23,12 +23,24 @@ import (
 
 import "sigs.k8s.io/controller-runtime/pkg/client"
 
+type UpdateMode string
+
+const (
+	UpdateModeOff      = UpdateMode(vpav1.UpdateModeOff)
+	UpdateModeInitial  = UpdateMode(vpav1.UpdateModeInitial)
+	UpdateModeRecreate = UpdateMode(vpav1.UpdateModeRecreate)
+	UpdateModeAuto     = UpdateMode(vpav1.UpdateModeAuto)
+)
+
+var AvailableUpdateModes = []UpdateMode{UpdateModeOff, UpdateModeInitial, UpdateModeRecreate, UpdateModeAuto}
+
 type GeneralReconciler struct {
 	client         client.Client
 	scheme         *runtime.Scheme
 	createEmptyObj func() client.Object
 	gkv            schema.GroupVersionKind
 	nsSelector     string
+	updateMode     UpdateMode
 }
 
 func NewGeneralReconciler(
@@ -36,10 +48,20 @@ func NewGeneralReconciler(
 	scheme *runtime.Scheme,
 	nsSelector string,
 	createEmptyObj func() client.Object,
+	updateMode UpdateMode,
 ) (*GeneralReconciler, error) {
 	gkv, err := apiutil.GVKForObject(createEmptyObj(), scheme)
 	if err != nil {
 		return nil, err
+	}
+	isValidUpdateMode := false
+	for _, mode := range AvailableUpdateModes {
+		if mode == updateMode {
+			isValidUpdateMode = true
+		}
+	}
+	if !isValidUpdateMode {
+		return nil, fmt.Errorf("invalid update mode, valid: %v", AvailableUpdateModes)
 	}
 	return &GeneralReconciler{
 		client:         client,
@@ -47,6 +69,7 @@ func NewGeneralReconciler(
 		createEmptyObj: createEmptyObj,
 		gkv:            gkv,
 		nsSelector:     nsSelector,
+		updateMode:     updateMode,
 	}, nil
 }
 
@@ -128,7 +151,7 @@ func (r *GeneralReconciler) Reconcile(ctx context.Context, req ctrl.Request) (re
 // deploymentForMemcached returns a Deployment object for data from m.
 func (r *GeneralReconciler) vpaForObject(obj client.Object) (*vpav1.VerticalPodAutoscaler, error) {
 	lbls := map[string]string{"paragor.ru/owned": "deployment-operator"}
-	updateMode := vpav1.UpdateModeInitial
+	updateMode := vpav1.UpdateMode(r.updateMode)
 	controlledValuesRequestsOnly := vpav1.ContainerControlledValuesRequestsOnly
 	vpa := &vpav1.VerticalPodAutoscaler{
 		ObjectMeta: metav1.ObjectMeta{
