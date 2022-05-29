@@ -11,14 +11,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	vpav1 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1"
+	"k8s.io/client-go/util/workqueue"
 	"reflect"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"strings"
+	"time"
 )
 
 import "sigs.k8s.io/controller-runtime/pkg/client"
@@ -190,6 +193,10 @@ func (r *GeneralReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(r.createEmptyObj()).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Owns(&vpav1.VerticalPodAutoscaler{}).
+		WithOptions(controller.Options{
+			MaxConcurrentReconciles: 1,
+			RateLimiter:             workqueue.NewItemExponentialFailureRateLimiter(250*time.Millisecond, 1*time.Minute),
+		}).
 		Complete(r)
 }
 
