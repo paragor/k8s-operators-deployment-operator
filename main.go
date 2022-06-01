@@ -148,7 +148,6 @@ func main() {
 		reconciler, err := controllers.NewGeneralReconciler(
 			mgr.GetClient(),
 			mgr.GetScheme(),
-			namespaceSelector,
 			func() client.Object {
 				return copyObjType
 			},

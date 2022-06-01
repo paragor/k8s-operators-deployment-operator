@@ -42,14 +42,12 @@ type GeneralReconciler struct {
 	scheme         *runtime.Scheme
 	createEmptyObj func() client.Object
 	gkv            schema.GroupVersionKind
-	nsSelector     string
 	updateMode     UpdateMode
 }
 
 func NewGeneralReconciler(
 	client client.Client,
 	scheme *runtime.Scheme,
-	nsSelector string,
 	createEmptyObj func() client.Object,
 	updateMode UpdateMode,
 ) (*GeneralReconciler, error) {
@@ -71,7 +69,6 @@ func NewGeneralReconciler(
 		scheme:         scheme,
 		createEmptyObj: createEmptyObj,
 		gkv:            gkv,
-		nsSelector:     nsSelector,
 		updateMode:     updateMode,
 	}, nil
 }
@@ -84,8 +81,6 @@ func (r *GeneralReconciler) Reconcile(ctx context.Context, req ctrl.Request) (re
 	logger := log.FromContext(ctx)
 	logger.Info("got request")
 	obj := r.createEmptyObj()
-
-	//todo фильтрация ns по r.nsSelector
 
 	err := r.client.Get(ctx, req.NamespacedName, obj)
 	if err != nil {
